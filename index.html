@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width">
+</head>
+<body>
+  <section>
+    <div class="container" id="main">
+      <div class="columns is-mobile is-gapless is-marginless" v-for="i in 15">
+        <div class="column" v-for="j in 15">
+          <div class="has-background-primary cell" :data-x="i" :data-y="j"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <script src="bundle.js"></script>
+</body>
+</html>
