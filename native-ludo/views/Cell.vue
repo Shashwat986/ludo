@@ -1,6 +1,6 @@
 <template>
   <view class="cell" :style="{backgroundColor: bgColor}">
-    <text>&nbsp;</text>
+    <text>{{text}}</text>
   </view>
 </template>
 
@@ -11,11 +11,19 @@ export default {
   props: ['dx', 'dy'],
   data () {
     return {
-      bgColor: 'white'
+      bgColor: 'white',
+      text: " ",
     };
   },
   created () {
     this.bgColor = store.getters.getBgColor(this.dx, this.dy);
+  },
+  mounted () {
+    store.state.colors.forEach((color) => {
+      if (store.state.tokens[color + ',' + this.dx + ',' + this.dy]) {
+        this.text = color;
+      }
+    });
   }
 }
 </script>
