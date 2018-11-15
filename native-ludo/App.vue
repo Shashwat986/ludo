@@ -1,12 +1,8 @@
 <template>
   <view class="container">
-    <view class="main">
-      <view class="inner" v-for='i in x'>
-        <view class="cell" v-for="j in y">
-          <text class="text-color-primary">&nbsp;</text>
-        </view>
-      </view>
+    <view class="header">
     </view>
+    <board></board>
     <view class="footer" :style="footerStyle">
       <text class="text-color-primary">World</text>
     </view>
@@ -15,6 +11,7 @@
 
 <script>
 import { Dimensions } from 'react-native';
+import Board from './views/Board';
 
 export default {
   data() {
@@ -25,41 +22,25 @@ export default {
     footerStyle = { height: (height - width) };
 
     return {
-      x: 15,
-      y: 15,
       footerStyle: footerStyle
     }
+  },
+  components: {
+    board: Board
   }
 }
 </script>
 
 <style>
 .container {
-  background-color: white;
+  background-color: indigo;
   justify-content: flex-start;
   flex: 1;
 }
-.main {
-  aspect-ratio: 1;
-  padding: 20;
-  background-color: green;
-}
-.inner {
-  flex: 1;
-  flex-direction: row;
-}
-.cell {
-  background-color: red;
-  flex: 1;
-  aspect-ratio: 1;
-  border-width: 1;
-  border-color: black;
-}
-.footer {
-  background-color: green;
-  height: 200;
+.header {
+  height: 40;
 }
 .text-color-primary {
-  color: blue;
+  color: white;
 }
 </style>
