@@ -7,18 +7,27 @@
         </view>
       </view>
     </view>
-    <view class="footer">
+    <view class="footer" :style="footerStyle">
       <text class="text-color-primary">World</text>
     </view>
   </view>
 </template>
 
 <script>
+import { Dimensions } from 'react-native';
+
 export default {
   data() {
+    let d = Dimensions.get('window');
+    let height = d.height > d.width ? d.height : d.width;
+    let width = d.height > d.width ? d.width : d.height;
+
+    footerStyle = { height: (height - width) };
+
     return {
       x: 15,
-      y: 15
+      y: 15,
+      footerStyle: footerStyle
     }
   }
 }
@@ -32,6 +41,8 @@ export default {
 }
 .main {
   aspect-ratio: 1;
+  padding: 20;
+  background-color: green;
 }
 .inner {
   flex: 1;
@@ -46,6 +57,7 @@ export default {
 }
 .footer {
   background-color: green;
+  height: 200;
 }
 .text-color-primary {
   color: blue;
