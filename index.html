@@ -4,28 +4,26 @@
   <meta name="viewport" content="width=device-width">
 </head>
 <body>
-  <header>
-    <div class="container">
-      Hello World
-    </div>
-  </header>
-  <section id="main">
-    <div class="container">
-      <div class="tile is-ancestor">
-        <div class="tile is-3 is-vertical is-parent">
-          <infobox></infobox>
-          <infobox></infobox>
-        </div>
-        <div class="tile is-6 is-child">
-          <board></board>
-        </div>
-        <div class="tile is-3 is-vertical is-parent">
-          <infobox></infobox>
-          <infobox></infobox>
+  <div id="main">
+    <v-header></v-header>
+    <section>
+      <div class="container">
+        <div class="tile is-ancestor">
+          <div class="tile is-3 is-vertical is-parent">
+            <infobox color="R"></infobox>
+            <infobox color="Y"></infobox>
+          </div>
+          <div class="tile is-6 is-child">
+            <board></board>
+          </div>
+          <div class="tile is-3 is-vertical is-parent">
+            <infobox color="B"></infobox>
+            <infobox color="G"></infobox>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
   <script src="bundle.js"></script>
 </body>
 </html>

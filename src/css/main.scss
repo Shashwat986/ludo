@@ -1,1 +1,27 @@
 @import 'bulma';
+
+.has-border-danger {
+  border: 2px solid $danger;
+}
+
+.has-border-success {
+  border: 2px solid $success;
+}
+
+.has-border-warning {
+  border: 2px solid $warning;
+}
+
+.has-border-link {
+  border: 2px solid $link;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.selected {
+  cursor: pointer;
+  z-index: 400;
+  box-shadow: 0 0 10px 4px $grey-light;
+}

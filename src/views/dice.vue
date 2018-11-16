@@ -1,5 +1,5 @@
 <template>
-  <div :class="[{animate, selected}, 'dice', 'value-' + num]" @click="roll"></div>
+  <div :class="['dice', 'value-' + rollValue]" @click="roll"></div>
 </template>
 
 <script>
@@ -9,20 +9,22 @@ export default {
       type: Number,
       default: 0
     },
-    selected: {
+    isStep: {
       type: Boolean,
       default: false
     }
   },
   data () {
     return {
-      animate: false
+      rollValue: this.num
     };
   },
   methods: {
     roll () {
+      if (!this.isStep) return;
       this.$store.commit('roll');
-      this.num = this.$store.state.dieRoll;
+      this.rollValue = this.$store.state.dieRoll;
+      this.$store.dispatch('completeStep');
     }
   },
   mounted () {
@@ -39,6 +41,7 @@ export default {
 }
 
 .dice.selected {
+  box-sizing: content-box;
   border: 1px solid black;
   border-radius: 7px;
   box-shadow: 0 0 3px 2px grey;
@@ -46,13 +49,7 @@ export default {
 
 .dice.value-0 {
   background-image: url('../../assets/dice0.png');
-  width: 50px;
-  height: 50px;
   background-size: 50px;
-}
-
-.dice.value-0.animate {
-  background-position: 175px -1px;
 }
 
 .dice.value-1 {

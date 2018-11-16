@@ -1,5 +1,5 @@
 <template>
-  <div :class="[bgClass, 'cell', isHoverable ? 'hoverable' : '']" :data-x="dx" :data-y="dy" @click="clicked">
+  <div :class="[bgClass, 'cell', { selected: isStep }]" :data-x="dx" :data-y="dy" @click="clicked">
     <div class='cell-text'>
       {{getText}}
     </div>
@@ -11,7 +11,6 @@ export default {
   props: ['dx', 'dy'],
   data () {
     return {
-      isHoverable: false
     };
   },
   computed: {
@@ -28,6 +27,13 @@ export default {
         return allTokens[0];
       else
         return " ";
+    },
+    isStep () {
+      return (
+        this.getText === this.$store.state.move &&
+        this.$store.state.step === 1 &&
+        !this.$store.getters.rejectMove(this.getPos).rejectStatus
+      );
     }
   },
   methods: {
@@ -35,13 +41,25 @@ export default {
       if (this.$store.state.disabled) {
         return;
       }
-      if (this.$store.state.move !== this.getText) {
+      if (!this.isStep) {
         return;
       }
 
-      this.$store.dispatch('move', {
+      let sts = this.$store.dispatch('move', {
         color: this.getText,
         from: this.getPos
+      });
+
+      if (!(sts && typeof sts.then === 'function')) {
+        sts = Promise.resolve(sts);
+      }
+
+      sts.then((res) => {
+        if (res) {
+          this.$store.dispatch('completeStep');
+        } else {
+          alert("Invalid move");
+        }
       });
     }
   }
@@ -50,12 +68,6 @@ export default {
 
 <style lang="sass">
 @import 'bulma';
-
-.cell.hoverable:hover {
-  cursor: pointer;
-  z-index: 400;
-  box-shadow: 0 0 10px 4px $grey-light;
-}
 
 .cell {
   border: 0.5px solid $black;

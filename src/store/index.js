@@ -30,6 +30,13 @@ const colormap = {
   'X': 'black'
 }
 
+const colorName = {
+  'R': 'Red',
+  'B': 'Blue',
+  'G': 'Green',
+  'Y': 'Yellow'
+}
+
 let boardPathsCommon = {
   "2,9": "3,9",
   "3,9": "4,9",
@@ -150,11 +157,38 @@ let tokens = {
   "Y,12,2": 1
 }
 
+let specialCells = {
+  "3,2": 1,
+  "5,3": 1,
+  "4,5": 1,
+  "2,4": 1,
+
+  "3,11": 1,
+  "2,13": 1,
+  "5,12": 1,
+  "4,14": 1,
+
+  "11,13": 1,
+  "13,14": 1,
+  "12,11": 1,
+  "14,12": 1,
+
+  "13,5": 1,
+  "14,3": 1,
+  "11,4": 1,
+  "12,2": 1
+}
+
 const store = new Vuex.Store({
   state: {
     tokens: {...tokens},
+    specialCells: {...specialCells},
     colors: ['R', 'B', 'G', 'Y'],
+    colormap: colormap,
+    colorName: colorName,
     move: 'R',
+    step: 0,
+    repeatMove: false,
     dieRoll: null,
     disabled: false
   },
@@ -189,9 +223,32 @@ const store = new Vuex.Store({
         allTokens.splice(moveIndex, 1);
         return [state.move] + allTokens;
       }
+    },
+    rejectMove (state) {
+      return function (pos) {
+        if (state.specialCells[pos] === 1) {
+          if (state.dieRoll === 6) {
+            return {
+              rejectStatus: false,
+              dieRoll: 1,
+              repeatMove: true
+            };
+          } else {
+            return {
+              rejectStatus: true
+            };
+          }
+        }
+        return {
+          rejectStatus: false
+        };
+      }
     }
   },
   mutations: {
+    setRepeatMove (state) {
+      state.repeatMove = true;
+    },
     setDisabled (state) {
       state.disabled = true;
     },
@@ -210,6 +267,11 @@ const store = new Vuex.Store({
     nextPlayer (state) {
       /* Change active player */
 
+      if (state.repeatMove) {
+        state.repeatMove = false;
+        return;
+      }
+
       let len = state.colors.length;
       let idx = state.colors.indexOf(state.move);
 
@@ -219,26 +281,51 @@ const store = new Vuex.Store({
         state.move = state.colors[(idx + 1) % len];
       }
     },
+    nextStep (state) {
+      state.step = 1 - state.step;
+    },
     roll (state) {
       state.dieRoll = Math.floor(Math.random() * 6 + 1);
     }
   },
   actions: {
-    move ({commit, state, getters}, {color, from, count}) {
-      /* Move a particular token `count` (or dieRoll) times */
+    completeStep ({commit, state}) {
+      if (state.step === 0) {
+        commit('nextStep');
+      } else {
+        commit('nextPlayer');
+        commit('nextStep');
+      }
+    },
+    move ({commit, state, getters}, {color, from}) {
+      /* Move a particular token `dieRoll` times
+         return value: Was the move valid?
+      */
 
-      if (typeof count === "undefined")
-        count = state.dieRoll;
+      let dieRoll = state.dieRoll;
+
+      let rejectMoveStatus = getters.rejectMove(from);
+
+      if (rejectMoveStatus.rejectStatus === true) {
+        return false;
+      } else {
+        if (rejectMoveStatus.dieRoll) {
+          dieRoll = rejectMoveStatus.dieRoll;
+        }
+        if (rejectMoveStatus.repeatMove) {
+          commit('setRepeatMove');
+        }
+      }
 
       if (state.colors.indexOf(color) === -1) {
-        return;
+        return false;
       }
 
       let curr = from;
       let i = 0;
 
       function f() {
-        if (i < count) {
+        if (i < dieRoll) {
           i++;
           if (typeof boardPaths[color][curr] !== "undefined") {
             from = curr;
@@ -264,6 +351,7 @@ const store = new Vuex.Store({
 
       commit('setDisabled');
       f();
+      return true;
     }
   }
 });
