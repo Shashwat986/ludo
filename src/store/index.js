@@ -154,7 +154,9 @@ const store = new Vuex.Store({
   state: {
     tokens: {...tokens},
     colors: ['R', 'B', 'G', 'Y'],
-    move: 'R'
+    move: 'R',
+    dieRoll: null,
+    disabled: false
   },
   getters: {
     getBgColor (state) {
@@ -179,7 +181,7 @@ const store = new Vuex.Store({
           }
         });
 
-        moveIndex = allTokens.indexOf(state.move);
+        let moveIndex = allTokens.indexOf(state.move);
 
         if (moveIndex === -1)
           return allTokens;
@@ -190,12 +192,43 @@ const store = new Vuex.Store({
     }
   },
   mutations: {
+    setDisabled (state) {
+      state.disabled = true;
+    },
+    unsetDisabled (state) {
+      state.disabled = false;
+    },
     setTokens (state, {color, pos, value}) {
+      /* Put a particular token at a particular spot
+         color: R, G, B, Y
+         pos: x,y
+         value: Number of `color` tokens at `pos`
+      */
+
       Vue.set(state.tokens, color + ',' + pos, value)
+    },
+    nextPlayer (state) {
+      /* Change active player */
+
+      let len = state.colors.length;
+      let idx = state.colors.indexOf(state.move);
+
+      if (idx === -1) {
+        throw "WHAT";
+      } else {
+        state.move = state.colors[(idx + 1) % len];
+      }
+    },
+    roll (state) {
+      state.dieRoll = Math.floor(Math.random() * 6 + 1);
     }
   },
   actions: {
     move ({commit, state, getters}, {color, from, count}) {
+      /* Move a particular token `count` (or dieRoll) times */
+
+      if (typeof count === "undefined")
+        count = state.dieRoll;
 
       if (state.colors.indexOf(color) === -1) {
         return;
@@ -215,18 +248,21 @@ const store = new Vuex.Store({
               color,
               pos: curr,
               value: getters.getTokens(color, curr) + 1
-            })
+            });
             commit('setTokens', {
               color,
               pos: from,
               value: getters.getTokens(color, from) - 1
-            })
+            });
 
-            setTimeout(f, 150)
+            setTimeout(f, 150);
           }
+        } else {
+          commit('unsetDisabled');
         }
       }
 
+      commit('setDisabled');
       f();
     }
   }

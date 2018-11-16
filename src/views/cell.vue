@@ -32,10 +32,16 @@ export default {
   },
   methods: {
     clicked (e) {
+      if (this.$store.state.disabled) {
+        return;
+      }
+      if (this.$store.state.move !== this.getText) {
+        return;
+      }
+
       this.$store.dispatch('move', {
         color: this.getText,
-        from: this.getPos,
-        count: 15
+        from: this.getPos
       });
     }
   }
