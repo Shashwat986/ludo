@@ -1,6 +1,8 @@
 <template>
   <view class="cell" :style="{backgroundColor: bgColor}">
-    <text>{{text}}</text>
+    <touchable-highlight :onPress="move">
+      <text>{{getText}}</text>
+    </touchable-highlight>
   </view>
 </template>
 
@@ -15,15 +17,27 @@ export default {
       text: " ",
     };
   },
+  computed: {
+    getPos () {
+      return this.dx + ',' + this.dy;
+    },
+    getText () {
+      let finalColor = " ";
+      store.state.colors.forEach((color) => {
+        if (store.state.tokens[color + ',' + this.getPos] > 0) {
+          finalColor = color;
+        }
+      });
+      return finalColor;
+    }
+  },
   created () {
     this.bgColor = store.getters.getBgColor(this.dx, this.dy);
   },
-  mounted () {
-    store.state.colors.forEach((color) => {
-      if (store.state.tokens[color + ',' + this.dx + ',' + this.dy]) {
-        this.text = color;
-      }
-    });
+  methods: {
+    move () {
+      store.dispatch('move', {color: this.getText, from: this.getPos, count: 6});
+    }
   }
 }
 </script>

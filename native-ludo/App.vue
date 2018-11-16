@@ -4,7 +4,7 @@
     </view>
     <board></board>
     <view class="footer" :style="footerStyle">
-      <text class="text-color-primary">World</text>
+      <text class="text-color-primary">{{t}}</text>
     </view>
   </view>
 </template>
@@ -12,6 +12,7 @@
 <script>
 import { Dimensions } from 'react-native';
 import Board from './views/Board';
+import store from './store';
 
 export default {
   data() {
@@ -23,6 +24,11 @@ export default {
 
     return {
       footerStyle: footerStyle
+    }
+  },
+  computed: {
+    t () {
+      return JSON.stringify(store.state.tokens);
     }
   },
   components: {

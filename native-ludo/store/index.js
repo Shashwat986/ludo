@@ -159,7 +159,7 @@ let colormap = {
 
 const store = new Vuex.Store({
   state: {
-    tokens: tokens,
+    tokens: {...tokens},
     colors: ['R', 'B', 'G', 'Y'],
     colormap: colormap
   },
@@ -167,23 +167,56 @@ const store = new Vuex.Store({
     getBgColor (state) {
       return function (x, y) {
         return colormap[boardData[x-1][y-1]];
-      }
+      };
+    },
+    getTokens (state) {
+      return function (color, pos) {
+        if (state.tokens[color + ',' + pos] == null)
+          return 0
+
+        return state.tokens[color + ',' + pos]
+      };
     }
   },
   mutations: {
-    move (state, {color, from, count}) {
+    setTokens (state, {color, pos, value}) {
+      Vue.set(state.tokens, color + ',' + pos, value)
+    }
+  },
+  actions: {
+    move ({commit, state, getters}, {color, from, count}) {
+
+      if (state.colors.indexOf(color) === -1) {
+        return;
+      }
+
       let curr = from;
-      for (let i = 0; i < count; i++) {
-        if (typeof boardPaths[color][curr] !== "undefined") {
-          curr = boardPaths[color][curr];
-        } else {
-          return;
+      let i = 0;
+
+      function f() {
+        if (i < count) {
+          i++;
+          if (typeof boardPaths[color][curr] !== "undefined") {
+            from = curr;
+            curr = boardPaths[color][curr];
+
+            commit('setTokens', {
+              color,
+              pos: curr,
+              value: getters.getTokens(color, curr) + 1
+            })
+            commit('setTokens', {
+              color,
+              pos: from,
+              value: getters.getTokens(color, from) - 1
+            })
+
+            setTimeout(f,50)
+          }
         }
       }
-      if (state.tokens[color + ',' + curr] == null)
-        state.tokens[color + ',' + curr] = 0;
-      state.tokens[color + ',' + curr] += 1;
-      state.tokens[color + ',' + from] -= 1;
+
+      f();
     }
   }
 });
