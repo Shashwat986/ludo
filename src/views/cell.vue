@@ -1,13 +1,42 @@
 <template>
-  <div :class="[bgClass, 'cell']" :data-x="i" :data-y="j"></div>
+  <div :class="[bgClass, 'cell', isHoverable ? 'hoverable' : '']" :data-x="dx" :data-y="dy" @click="clicked">
+    <div class='cell-text'>
+      {{getText}}
+    </div>
+  </div>
 </template>
 
 <script>
 export default {
-  props: ['i', 'j', 'color'],
+  props: ['dx', 'dy'],
+  data () {
+    return {
+      isHoverable: false
+    };
+  },
   computed: {
     bgClass () {
-      return 'has-background-' + this.color;
+      return 'has-background-' + this.$store.getters.getBgColor(this.dx, this.dy);
+    },
+    getPos () {
+      return this.dx + ',' + this.dy;
+    },
+    getText () {
+      let allTokens = this.$store.getters.getAllTokens(this.getPos);
+
+      if (allTokens.length > 0)
+        return allTokens[0];
+      else
+        return " ";
+    }
+  },
+  methods: {
+    clicked (e) {
+      this.$store.dispatch('move', {
+        color: this.getText,
+        from: this.getPos,
+        count: 15
+      });
     }
   }
 }
@@ -15,6 +44,12 @@ export default {
 
 <style lang="sass">
 @import 'bulma';
+
+.cell.hoverable:hover {
+  cursor: pointer;
+  z-index: 400;
+  box-shadow: 0 0 10px 4px $grey-light;
+}
 
 .cell {
   border: 0.5px solid $black;
@@ -27,33 +62,15 @@ export default {
   padding-bottom: 100%;
 }
 
-.cell:before {
-  content: "";
+.cell-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
   bottom: 0;
-  z-index: 100;
-}
-
-.cell.left:before {
-  left: -2px;
-  border-left: 2px solid $white-ter;
-}
-
-.cell.top:before {
-  top: -2px;
-  border-top: 2px solid $white-ter;
-}
-
-.cell.bottom:before {
-  bottom: -2px;
-  border-bottom: 2px solid $white-ter;
-}
-
-.cell.right:before {
-  right: -2px;
-  border-right: 2px solid $white-ter;
 }
 </style>
