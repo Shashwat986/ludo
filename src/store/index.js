@@ -157,7 +157,20 @@ let tokens = {
   "Y,12,2": 1
 }
 
+const baseTokens = {
+  R: ["3,2", "5,3", "4,5", "2,4"],
+  B: ["3,11", "2,13", "5,12", "4,14"],
+  G: ["11,13", "13,14", "12,11", "14,12"],
+  Y: ["13,5", "14,3", "11,4", "12,2"]
+}
+
 let specialCells = {
+  "8,7": 100,
+  "7,8": 100,
+  "8,9": 100,
+  "9,8": 100,
+
+  /* Starting Cells */
   "3,2": 1,
   "5,3": 1,
   "4,5": 1,
@@ -176,7 +189,42 @@ let specialCells = {
   "13,5": 1,
   "14,3": 1,
   "11,4": 1,
-  "12,2": 1
+  "12,2": 1,
+
+  /* Star Points */
+  "7,2": 2,
+  "3,7": 2,
+  "2,9": 2,
+  "7,13": 2,
+  "9,14": 2,
+  "13,9": 2,
+  "14,7": 2,
+  "9,3": 2,
+
+  /* End track */
+  "8,2": 15,
+  "8,3": 14,
+  "8,4": 13,
+  "8,5": 12,
+  "8,6": 11,
+
+  "8,14": 15,
+  "8,13": 14,
+  "8,12": 13,
+  "8,11": 12,
+  "8,10": 11,
+
+  "2,8": 15,
+  "3,8": 14,
+  "4,8": 13,
+  "5,8": 12,
+  "6,8": 11,
+
+  "14,8": 15,
+  "13,8": 14,
+  "12,8": 13,
+  "11,8": 12,
+  "10,8": 11,
 }
 
 const store = new Vuex.Store({
@@ -217,16 +265,21 @@ const store = new Vuex.Store({
 
         let moveIndex = allTokens.indexOf(state.move);
 
-        if (moveIndex === -1)
+        if (moveIndex === -1) {
           return allTokens;
+        }
 
         allTokens.splice(moveIndex, 1);
-        return [state.move] + allTokens;
+        return [state.move].concat(allTokens);
       }
     },
     rejectMove (state) {
       return function (pos) {
-        if (state.specialCells[pos] === 1) {
+        if (state.specialCells[pos] === 100) {
+          return {
+            rejectStatus: true
+          };
+        } else if (state.specialCells[pos] === 1) {
           if (state.dieRoll === 6) {
             return {
               rejectStatus: false,
@@ -237,6 +290,16 @@ const store = new Vuex.Store({
             return {
               rejectStatus: true
             };
+          }
+        } else if (state.specialCells[pos] === 2) {
+          return {
+            killTokens: false
+          }
+        } else if (10 <= state.specialCells[pos] && state.specialCells[pos] < 20) {
+          if (state.dieRoll > state.specialCells[pos] - 10) {
+            return {
+              rejectStatus: true
+            }
           }
         }
         return {
@@ -254,6 +317,22 @@ const store = new Vuex.Store({
     },
     unsetDisabled (state) {
       state.disabled = false;
+    },
+    resetToken (state, color) {
+      /* Send a token of color `color` back home */
+      let pos;
+      let i;
+      for (i = 0; i < baseTokens[color].length; i++) {
+        pos = baseTokens[color][i];
+        if (state.tokens[color + ',' + pos] === 0) {
+          state.tokens[color + ',' + pos] = 1;
+          return;
+        }
+      }
+
+      if (i === baseTokens[color].length) {
+        state.tokens[color + ',' + baseTokens[color][0]] += 1;
+      }
     },
     setTokens (state, {color, pos, value}) {
       /* Put a particular token at a particular spot
@@ -285,7 +364,7 @@ const store = new Vuex.Store({
       state.step = 1 - state.step;
     },
     roll (state) {
-      state.dieRoll = Math.floor(Math.random() * 6 + 1);
+      state.dieRoll = window.roll || Math.floor(Math.random() * 6 + 1); // FIXME
     }
   },
   actions: {
@@ -321,8 +400,19 @@ const store = new Vuex.Store({
         return false;
       }
 
-      let curr = from;
+      let to = from;
       let i = 0;
+      for (i = 0; i < dieRoll; i++) {
+        if (typeof boardPaths[color][to] !== "undefined") {
+          to = boardPaths[color][to];
+        } else {
+          /* Off Path */
+          return false;
+        }
+      }
+
+      let curr = from;
+      i = 0;
 
       function f() {
         if (i < dieRoll) {
@@ -345,6 +435,29 @@ const store = new Vuex.Store({
             setTimeout(f, 150);
           }
         } else {
+          commit('unsetDisabled');
+          if (!(rejectMoveStatus.killTokens === false)) {
+            /* Can kill tokens */
+
+            let tokensToKill = getters.getAllTokens(to);
+
+            if (typeof tokensToKill !== "string")
+            tokensToKill.forEach(function (tokenColor) {
+              if (color === tokenColor)
+                return;
+
+              for (let j = 0; j < getters.getTokens(tokenColor, to); j++) {
+                commit('resetToken', tokenColor);
+              }
+
+              commit('setTokens', {
+                color: tokenColor,
+                pos: to,
+                value: 0
+              });
+            });
+          }
+
           commit('unsetDisabled');
         }
       }

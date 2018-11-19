@@ -1,5 +1,5 @@
 <template>
-  <div :class="['dice', 'value-' + rollValue]" @click="roll"></div>
+  <div tabindex=0 :class="['dice', 'value-' + rollValue]" @click="roll"></div>
 </template>
 
 <script>
@@ -27,7 +27,10 @@ export default {
       this.$store.dispatch('completeStep');
     }
   },
-  mounted () {
+  update () {
+    if (this.isStep) {
+      this.$el.focus();
+    }
   }
 }
 </script>
