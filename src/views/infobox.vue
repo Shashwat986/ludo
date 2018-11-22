@@ -6,13 +6,19 @@
       </p>
     </header>
     <div class="card-content">
-      <div class="level">
+      <div class="level is-mobile">
         <div :class="{['has-border-' + bColor]: isStep, pointer: isStep, ['level-left']: true}">
         <dice :isStep="isStep"></dice>
         </div>
         <div :class="['level-right', {selected: isStep2}]">
           <a class="button" @click="pass">Pass</a>
         </div>
+      </div>
+      <div class="buttons is-centered">
+          <a :class="{button: true, 'is-info': false, selected: isStep2}">&#x2B50;</a>
+          <a :class="{button: true, 'is-info': false, selected: isStep2}">&#x2B50;</a>
+          <a :class="{button: true, 'is-info': true, selected: isStep2}">&#x2B50;</a>
+          <a :class="{button: true, 'is-info': true, selected: isStep2}">&#x2B50;</a>
       </div>
     </div>
   </div>

@@ -22,6 +22,8 @@ export default {
   methods: {
     roll () {
       if (!this.isStep) return;
+      if (this.$store.state.disabled) return;
+
       this.$store.commit('roll');
       this.rollValue = this.$store.state.dieRoll;
       this.$store.dispatch('completeStep');

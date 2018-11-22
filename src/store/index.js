@@ -227,11 +227,25 @@ let specialCells = {
   "10,8": 11,
 }
 
+let powers = {
+  removeStar: 0,
+  immune: 0,
+  accelerate: 0
+}
+
+let playerPowers = {
+  R: {...powers},
+  B: {...powers},
+  G: {...powers},
+  Y: {...powers}
+}
+
 const store = new Vuex.Store({
   state: {
     tokens: {...tokens},
     specialCells: {...specialCells},
     colors: ['R', 'B', 'G', 'Y'],
+    playerPowers: {...playerPowers},
     colormap: colormap,
     colorName: colorName,
     move: 'R',
@@ -275,36 +289,31 @@ const store = new Vuex.Store({
     },
     rejectMove (state) {
       return function (pos) {
-        if (state.specialCells[pos] === 100) {
-          return {
-            rejectStatus: true
-          };
-        } else if (state.specialCells[pos] === 1) {
-          if (state.dieRoll === 6) {
-            return {
-              rejectStatus: false,
-              dieRoll: 1,
-              repeatMove: true
-            };
-          } else {
-            return {
-              rejectStatus: true
-            };
-          }
-        } else if (state.specialCells[pos] === 2) {
-          return {
-            killTokens: false
-          }
-        } else if (10 <= state.specialCells[pos] && state.specialCells[pos] < 20) {
-          if (state.dieRoll > state.specialCells[pos] - 10) {
-            return {
-              rejectStatus: true
-            }
-          }
-        }
-        return {
+        let rms = {
           rejectStatus: false
         };
+
+        if (state.dieRoll === 6) {
+          rms.repeatMove = true;
+        }
+
+        if (state.specialCells[pos] === 100) {
+          rms.rejectStatus = true;
+        } else if (state.specialCells[pos] === 1) {
+          if (state.dieRoll === 6) {
+            rms.dieRoll = 1;
+          } else {
+            rms.rejectStatus = true;
+          }
+        } else if (state.specialCells[pos] === 2) {
+          rms.killTokens = false;
+        } else if (10 <= state.specialCells[pos] && state.specialCells[pos] < 20) {
+          if (state.dieRoll > state.specialCells[pos] - 10) {
+            rms.rejectStatus = true;
+          }
+        }
+
+        return rms;
       }
     }
   },
