@@ -7,7 +7,7 @@
     </header>
     <div class="card-content">
       <div class="level is-mobile">
-        <div :class="{selected: isStep('dice'), pointer: isStep, ['level-left']: true}">
+        <div :class="{selected: isStep('dice'), ['level-left']: true}">
           <dice :isStep="isStep('dice')"></dice>
         </div>
         <div :class="['level-right', {selected: isStep('pass')}]">
@@ -16,7 +16,7 @@
       </div>
       <div class="buttons is-centered">
         <a
-          :class="{button: true, 'is-info': isAvailable(i), selected: isStep(btnClass(i))}"
+          :class="{button: true, 'is-info': isAvailable(i), selected: isStepBtn(i)}"
           v-for="i in numTypes"
           @click="btnPress(i)"
         >
@@ -60,23 +60,24 @@ export default {
     }
   },
   methods: {
-    btnClass (i) {
-      return "btn" + btnTypes[i-1];
-    },
     isAvailable (i) {
       return (btnPowers[btnTypes[i-1]] < this.player.energy);
     },
     isStep (ref) {
       return this.$store.getters.isStep(ref, this.color);
     },
+    isStepBtn (i) {
+      let ref = btnTypes[i-1];
+      return this.$store.getters.isStep("btn", {btn: ref, color: this.color});
+    },
     energy () {
       return this.$store.getters.getEnergy(this.color);
     },
     pass () {
-      this.$store.dispatch('movePass', this.color);
+      this.$store.dispatch('movePass');
     },
     btnPress (i) {
-      this.$store.dispatch('moveBtn', {color: this.color, btn: btnTypes[i-1]});
+      this.$store.dispatch('moveBtn', {btn: btnTypes[i-1]});
     }
   }
 }

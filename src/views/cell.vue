@@ -53,7 +53,6 @@ export default {
       }
 
       let sts = this.$store.dispatch('moveToken', {
-        color: this.getColor,
         from: this.getPos
       });
 

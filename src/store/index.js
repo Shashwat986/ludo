@@ -126,34 +126,36 @@ const store = new Vuex.Store({
     },
     isStep (state, getters) {
       return function (ref, val) {
+        let color = state.move;
+
         if (state.disabled) {
           return false;
         }
 
         if (ref === "dice") {
-          return val === state.move &&
+          return val === color &&
                  state.step === stepsMap.start;
         }
 
         if (ref === "cell") {
           let cell = Cell.get(val);
 
-          return cell.getToken(state.move) &&
+          return cell.getToken(color) &&
                  (!getters.canTokenMove(val).rejectStatus) &&
                  state.step === stepsMap.selectOwnToken;
         }
 
         if (ref === "pass") {
-          return val === state.move &&
+          return val === color &&
                  state.step !== stepsMap.start;
         }
 
-        if (ref.startsWith("btn")) {
-          let player = Player.get(val);
-          if (btnPowers[ref.substring(3)] > player.energy) {
+        if (ref === "btn") {
+          let player = Player.get(val.color);
+          if (btnPowers[val.btn] > player.energy) {
             return false;
           }
-          return val === state.move &&
+          return val.color === color &&
                  state.step !== stepsMap.start;
         }
 
@@ -244,8 +246,8 @@ const store = new Vuex.Store({
         commit('nextStep', stepsMap.start);
       }
     },
-    checkForWin () {
-      colors.forEach(function (color) {
+    checkForWin ({state}) {
+      state.colors.forEach(function (color) {
         let colorWins = true;
         let player = Player.get(color);
         player.tokens.forEach(function (token) {
@@ -268,7 +270,9 @@ const store = new Vuex.Store({
 
       return Promise.resolve(state.dieRoll);
     },
-    movePass({commit, state, getters, dispatch}, color) {
+    movePass({commit, state, getters, dispatch}) {
+      let color = state.move;
+
       if (getters.isStep('pass', color)) {
         if (state.dieRoll > 3) {
           let value = 0;
@@ -280,7 +284,8 @@ const store = new Vuex.Store({
         dispatch('completeStep');
       }
     },
-    moveBtn({commit, state, getters}, {color, btn}) {
+    moveBtn({commit, state, getters}, {btn}) {
+      let color = state.move;
       let player = Player.get(color);
 
       if (getters.isStep('btn' + btn, color)) {
@@ -288,10 +293,11 @@ const store = new Vuex.Store({
         dispatch('completeStep');
       }
     },
-    moveToken ({commit, state, getters}, {color, from}) {
+    moveToken ({commit, state, getters}, {from}) {
       /* Move a particular token `dieRoll` times
          return value: Was the move valid?
       */
+      let color = state.move;
 
       let dieRoll = state.dieRoll;
 
