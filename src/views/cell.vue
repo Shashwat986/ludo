@@ -23,13 +23,21 @@ export default {
     getPos () {
       return this.dx + ',' + this.dy;
     },
-    getText () {
+    getColor () {
       let allTokens = this.$store.getters.getAllTokenColors(this.getPos);
 
       if (allTokens.length > 0)
         return allTokens[0];
       else
         return " ";
+    },
+    getText () {
+      if (this.getColor !== " ")
+        return this.getColor;
+      else if (this.cell.isStarPoint) {
+        return "⭐";
+      }
+      return " ";
     },
     isStep () {
       return this.$store.getters.isStep("cell", this.getPos);
@@ -45,7 +53,7 @@ export default {
       }
 
       let sts = this.$store.dispatch('moveToken', {
-        color: this.getText,
+        color: this.getColor,
         from: this.getPos
       });
 

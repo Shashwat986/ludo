@@ -119,6 +119,11 @@ const store = new Vuex.Store({
         return rms;
       }
     },
+    canKillTokens (state) {
+      return function(pos) {
+        return !Cell.get(pos).isStarPoint;
+      }
+    },
     isStep (state, getters) {
       return function (ref, val) {
         if (state.disabled) {
@@ -332,7 +337,7 @@ const store = new Vuex.Store({
           setTimeout(f, 150);
         } else {
           commit('unsetDisabled');
-          if (!(rejectMoveStatus.killTokens === false)) {
+          if (getters.canKillTokens(to)) {
             /* Can kill tokens */
 
             let tokensToKill = getters.getAllTokens(to);
@@ -342,6 +347,7 @@ const store = new Vuex.Store({
                 return;
 
               commit('resetToken', {color: token.color, from: token.cell.pos});
+              commit('setRepeatMove');
             });
           }
 
