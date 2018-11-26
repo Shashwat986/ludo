@@ -7,10 +7,13 @@
 </template>
 
 <script>
+import Cell from '../store/cell';
+
 export default {
   props: ['dx', 'dy'],
   data () {
     return {
+      cell: Cell.get(this.dx, this.dy)
     };
   },
   computed: {
@@ -21,7 +24,7 @@ export default {
       return this.dx + ',' + this.dy;
     },
     getText () {
-      let allTokens = this.$store.getters.getAllTokens(this.getPos);
+      let allTokens = this.$store.getters.getAllTokenColors(this.getPos);
 
       if (allTokens.length > 0)
         return allTokens[0];
@@ -29,11 +32,7 @@ export default {
         return " ";
     },
     isStep () {
-      return (
-        this.getText === this.$store.state.move &&
-        this.$store.state.step === 1 &&
-        !this.$store.getters.rejectMove(this.getPos).rejectStatus
-      );
+      return this.$store.getters.isStep("cell", this.getPos);
     }
   },
   methods: {
@@ -45,7 +44,7 @@ export default {
         return;
       }
 
-      let sts = this.$store.dispatch('move', {
+      let sts = this.$store.dispatch('moveToken', {
         color: this.getText,
         from: this.getPos
       });

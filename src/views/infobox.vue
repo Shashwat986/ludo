@@ -7,18 +7,24 @@
     </header>
     <div class="card-content">
       <div class="level is-mobile">
-        <div :class="{['has-border-' + bColor]: isStep, pointer: isStep, ['level-left']: true}">
-        <dice :isStep="isStep"></dice>
+        <div :class="{selected: isStep('dice'), pointer: isStep, ['level-left']: true}">
+          <dice :isStep="isStep('dice')"></dice>
         </div>
-        <div :class="['level-right', {selected: isStep2}]">
+        <div :class="['level-right', {selected: isStep('pass')}]">
           <a class="button" @click="pass">Pass</a>
         </div>
       </div>
       <div class="buttons is-centered">
-          <a :class="{button: true, 'is-info': false, selected: isStep2}">&#x2B50;</a>
-          <a :class="{button: true, 'is-info': false, selected: isStep2}">&#x2B50;</a>
-          <a :class="{button: true, 'is-info': true, selected: isStep2}">&#x2B50;</a>
-          <a :class="{button: true, 'is-info': true, selected: isStep2}">&#x2B50;</a>
+        <a
+          :class="{button: true, 'is-info': isAvailable(i), selected: isStep(btnClass(i))}"
+          v-for="i in numTypes"
+          @click="btnPress(i)"
+        >
+          {{btnTypes[i-1]}}
+        </a>
+      </div>
+      <div>
+        <progress :class="['progress', 'is-' + bColor]" :value="energy()" max="100">{{energy}}%</progress>
       </div>
     </div>
   </div>
@@ -26,34 +32,51 @@
 
 <script>
 import Dice from './dice.vue';
+import Player from '../store/player';
+import {btnPowers, btnTypes} from '../store/constants';
 
 export default {
   props: ['color'],
   components: {
     dice: Dice
   },
+  data () {
+    return {
+      player: Player.get(this.color)
+    };
+  },
   computed: {
+    btnTypes() {
+      return btnTypes;
+    },
+    numTypes () {
+      return btnTypes.length;
+    },
     bColor () {
       return this.$store.state.colormap[this.color];
     },
     colorName () {
       return this.$store.state.colorName[this.color];
-    },
-    isStep () {
-      return (this.color === this.$store.state.move && this.$store.state.step === 0);
-    },
-    isStep2 () {
-      return (this.color === this.$store.state.move && this.$store.state.step === 1);
     }
   },
   methods: {
+    btnClass (i) {
+      return "btn" + btnTypes[i-1];
+    },
+    isAvailable (i) {
+      return (btnPowers[btnTypes[i-1]] < this.player.energy);
+    },
+    isStep (ref) {
+      return this.$store.getters.isStep(ref, this.color);
+    },
+    energy () {
+      return this.$store.getters.getEnergy(this.color);
+    },
     pass () {
-      if (this.$store.state.disabled) {
-        return;
-      }
-      if (this.isStep2) {
-        this.$store.dispatch('completeStep');
-      }
+      this.$store.dispatch('movePass', this.color);
+    },
+    btnPress (i) {
+      this.$store.dispatch('moveBtn', {color: this.color, btn: btnTypes[i-1]});
     }
   }
 }

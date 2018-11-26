@@ -1,5 +1,5 @@
 <template>
-  <div tabindex=0 :class="['dice', 'value-' + rollValue]" @click="roll"></div>
+  <div :class="['dice', 'value-' + rollValue]" @click="roll"></div>
 </template>
 
 <script>
@@ -22,11 +22,10 @@ export default {
   methods: {
     roll () {
       if (!this.isStep) return;
-      if (this.$store.state.disabled) return;
 
-      this.$store.commit('roll');
-      this.rollValue = this.$store.state.dieRoll;
-      this.$store.dispatch('completeStep');
+      this.$store.dispatch('rollDie').then(() => {
+        this.rollValue = this.$store.state.dieRoll;
+      });
     }
   },
   update () {
