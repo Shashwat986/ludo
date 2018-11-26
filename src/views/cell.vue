@@ -61,9 +61,7 @@ export default {
       }
 
       sts.then((res) => {
-        if (res) {
-          this.$store.dispatch('completeStep');
-        } else {
+        if (!res) {
           alert("Invalid move");
         }
       });

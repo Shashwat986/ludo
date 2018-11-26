@@ -167,6 +167,9 @@ const store = new Vuex.Store({
     setRepeatMove (state) {
       state.repeatMove = true;
     },
+    unsetRepeatMove (state) {
+      state.repeatMove = false;
+    },
     setDisabled (state) {
       state.disabled = true;
     },
@@ -206,11 +209,6 @@ const store = new Vuex.Store({
     nextPlayer (state) {
       /* Change active player */
 
-      if (state.repeatMove) {
-        state.repeatMove = false;
-        return;
-      }
-
       let len = state.colors.length;
       let idx = state.colors.indexOf(state.move);
 
@@ -239,6 +237,14 @@ const store = new Vuex.Store({
   actions: {
     completeStep ({commit, state, dispatch}, ref) {
       dispatch('checkForWin');
+
+      if (state.repeatMove) {
+        commit('nextStep', stepsMap.start);
+        commit('unsetRepeatMove');
+
+        return;
+      }
+
       if (state.step === stepsMap.start) {
         commit('nextStep', ref);
       } else {
@@ -246,7 +252,7 @@ const store = new Vuex.Store({
         commit('nextStep', stepsMap.start);
       }
     },
-    checkForWin ({state}) {
+    checkForWin ({state, commit}) {
       state.colors.forEach(function (color) {
         let colorWins = true;
         let player = Player.get(color);
@@ -293,7 +299,7 @@ const store = new Vuex.Store({
         dispatch('completeStep');
       }
     },
-    moveToken ({commit, state, getters}, {from}) {
+    moveToken ({commit, state, getters, dispatch}, {from}) {
       /* Move a particular token `dieRoll` times
          return value: Was the move valid?
       */
@@ -358,6 +364,7 @@ const store = new Vuex.Store({
           }
 
           commit('unsetDisabled');
+          dispatch('completeStep');
         }
       }
 
