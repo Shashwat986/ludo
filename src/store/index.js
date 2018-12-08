@@ -4,7 +4,7 @@ import Vuex from 'vuex';
 Vue.use(Vuex);
 
 import {colors, steps, stepsMap} from './constants';
-import {boardData, colormap, boardPaths, colorName, baseTokens, btnPowers} from './constants';
+import {boardData, colormap, boardPaths, colorName, baseTokens, btnPowers, btnConsts} from './constants';
 import Cell from './cell';
 import Player from './player';
 import Token from './token';
@@ -40,6 +40,7 @@ const store = new Vuex.Store({
     move: colors[0],
     steps: steps,
     step: steps[0],
+    activeBtn: null,
     colormap: colormap,
     colorName: colorName,
     repeatMove: false,
@@ -75,9 +76,9 @@ const store = new Vuex.Store({
     getAllTokenColors (state) {
       return function (pos) {
         let colors = Cell.get(pos).getTokens().map((t) => t.color);
-        let idx = colors.indexOf(this.move)
+        let idx = colors.indexOf(state.move)
         if (idx !== -1) {
-          colors = [this.move].concat(colors.splice(idx, 1));
+          colors = [state.move].concat(colors.splice(idx, 1));
         }
         return colors;
       }
@@ -94,6 +95,11 @@ const store = new Vuex.Store({
           rms.repeatMove = true;
         }
 
+        if (state.activeBtn === btnConsts.get6) {
+          rms.repeatMove = false;
+          rms.unsetActiveBtn = true;
+        }
+
         if (cell.isEnd) {
           rms.rejectStatus = true;
         }
@@ -108,6 +114,10 @@ const store = new Vuex.Store({
 
         if (cell.isStarPoint) {
           rms.killTokens = false;
+        }
+
+        if (cell.isSticky) {
+          rms.dieRoll = Math.ceil(state.dieRoll / 2);
         }
 
         if (cell.isEndTrack) {
@@ -140,9 +150,15 @@ const store = new Vuex.Store({
         if (ref === "cell") {
           let cell = Cell.get(val);
 
-          return cell.getToken(color) &&
-                 (!getters.canTokenMove(val).rejectStatus) &&
-                 state.step === stepsMap.selectOwnToken;
+          let retVal = cell.getToken(color) &&
+                       (!getters.canTokenMove(val).rejectStatus) &&
+                       state.step === stepsMap.selectOwnToken;
+
+          retVal = retVal || (cell.onPath && state.step === stepsMap.selectCell);
+
+          retVal = retVal || (cell.getTokens().length && state.step === stepsMap.selectToken);
+
+          return retVal;
         }
 
         if (ref === "pass") {
@@ -156,7 +172,7 @@ const store = new Vuex.Store({
             return false;
           }
           return val.color === color &&
-                 state.step !== stepsMap.start;
+                 state.step === stepsMap.start;
         }
 
         return true;
@@ -169,6 +185,12 @@ const store = new Vuex.Store({
     },
     unsetRepeatMove (state) {
       state.repeatMove = false;
+    },
+    setActiveBtn (state, btnVal) {
+      state.activeBtn = btnVal;
+    },
+    unsetActiveBtn (state) {
+      state.activeBtn = null;
     },
     setDisabled (state) {
       state.disabled = true;
@@ -219,7 +241,7 @@ const store = new Vuex.Store({
       }
     },
     nextStep (state, ref) {
-      if (typeof ref !== "undefined") {
+      if (typeof ref !== "undefined" && state.steps.indexOf(ref) !== -1) {
         state.step = ref;
         return;
       }
@@ -230,8 +252,11 @@ const store = new Vuex.Store({
         state.step = stepsMap.start;
       }
     },
-    roll (state) {
-      state.dieRoll = window.roll || Math.floor(Math.random() * 6 + 1); // FIXME
+    roll (state, val) {
+      if (val == null)
+        state.dieRoll = window.roll || Math.floor(Math.random() * 6 + 1); // FIXME
+      else
+        state.dieRoll = val;
     }
   },
   actions: {
@@ -239,18 +264,22 @@ const store = new Vuex.Store({
       dispatch('checkForWin');
 
       if (state.repeatMove) {
+        // FIXME: This fires the moment state.repeatMove is set at any completeStep.
+        //        Make it fire at the end of the step?
         commit('nextStep', stepsMap.start);
         commit('unsetRepeatMove');
 
         return;
       }
 
-      if (state.step === stepsMap.start) {
-        commit('nextStep', ref);
-      } else {
+      if (state.step === stepsMap.end || ref === stepsMap.end) {
         commit('nextPlayer');
         commit('nextStep', stepsMap.start);
+
+        return;
       }
+
+      commit('nextStep', ref);
     },
     checkForWin ({state, commit}) {
       state.colors.forEach(function (color) {
@@ -272,7 +301,7 @@ const store = new Vuex.Store({
         return Promise.reject(null);
 
       commit('roll');
-      dispatch('completeStep');
+      dispatch('completeStep', stepsMap.selectOwnToken);
 
       return Promise.resolve(state.dieRoll);
     },
@@ -287,17 +316,56 @@ const store = new Vuex.Store({
           commit('increaseEnergy', {color, value});
         }
 
-        dispatch('completeStep');
+        dispatch('completeStep', stepsMap.end);
       }
     },
-    moveBtn({commit, state, getters}, {btn}) {
+    moveBtn({commit, state, getters, dispatch}, {btn}) {
       let color = state.move;
       let player = Player.get(color);
 
-      if (getters.isStep('btn' + btn, color)) {
-        commit('decreaseEnergy', {color, value: btnPowers[btn]});
-        dispatch('completeStep');
+      if (!getters.isStep('btn', {color, btn}))
+        return;
+
+      commit('decreaseEnergy', {color, value: btnPowers[btn]});
+
+      commit('setActiveBtn', btn);
+      switch (btn) {
+        case btnConsts.newStar:
+          dispatch('completeStep', stepsMap.selectCell);
+          break;
+        case btnConsts.sticky:
+          dispatch('completeStep', stepsMap.selectCell);
+          break;
+        case btnConsts.get6:
+          commit('roll', 6);
+          dispatch('completeStep', stepsMap.selectOwnToken);
       }
+
+    },
+    moveCell ({commit, state, dispatch}, params) {
+      if (state.step === stepsMap.selectOwnToken) {
+        return dispatch('moveToken', params);
+      }
+
+      if (state.step === stepsMap.selectCell) {
+        let pos = params.from;
+
+        let cell = Cell.get(pos);
+        switch (state.activeBtn) {
+          case btnConsts.newStar:
+            cell.isStarPoint = true;
+            commit('unsetActiveBtn');
+            break;
+          case btnConsts.sticky:
+            cell.isSticky = true;
+            commit('unsetActiveBtn');
+            break;
+        }
+
+        dispatch('completeStep', stepsMap.end);
+      }
+
+      return true;
     },
     moveToken ({commit, state, getters, dispatch}, {from}) {
       /* Move a particular token `dieRoll` times
@@ -319,6 +387,9 @@ const store = new Vuex.Store({
       if (rejectMoveStatus.repeatMove) {
         commit('setRepeatMove');
       }
+      if (rejectMoveStatus.unsetActiveBtn) {
+        commit('unsetActiveBtn');
+      }
 
       let fromCell = Cell.get(from);
       let token = fromCell.getToken(color);
@@ -331,6 +402,10 @@ const store = new Vuex.Store({
 
       if (to === null) {
         return false;
+      }
+
+      if (Cell.get(to).isEnd) {
+        commit('setRepeatMove');
       }
 
       let curr = from;
@@ -364,7 +439,7 @@ const store = new Vuex.Store({
           }
 
           commit('unsetDisabled');
-          dispatch('completeStep');
+          dispatch('completeStep', stepsMap.end);
         }
       }
 

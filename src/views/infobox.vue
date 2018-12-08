@@ -14,14 +14,20 @@
           <a class="button" @click="pass">Pass</a>
         </div>
       </div>
-      <div class="buttons is-centered">
-        <a
-          :class="{button: true, 'is-info': isAvailable(i), selected: isStepBtn(i)}"
-          v-for="i in numTypes"
-          @click="btnPress(i)"
-        >
-          {{btnTypes[i-1]}}
-        </a>
+      <div class="field is-grouped is-grouped-multiline is-centered">
+        <div class="control" v-for="i in numTypes">
+        <span class="tags has-addons">
+          <a
+            :class="{tag: true, 'is-info': isAvailable(i), selected: isStepBtn(i)}"
+            @click="btnPress(i)"
+          >
+            {{btnTypes[i-1]}}
+          </a>
+          <span class="tag is-dark">
+            {{btnPowers[btnTypes[i-1]]}}
+          </span>
+        </span>
+        </div>
       </div>
       <div>
         <progress :class="['progress', 'is-' + bColor]" :value="energy()" max="100">{{energy}}%</progress>
@@ -49,6 +55,9 @@ export default {
     btnTypes() {
       return btnTypes;
     },
+    btnPowers() {
+      return btnPowers
+    },
     numTypes () {
       return btnTypes.length;
     },
@@ -61,7 +70,7 @@ export default {
   },
   methods: {
     isAvailable (i) {
-      return (btnPowers[btnTypes[i-1]] < this.player.energy);
+      return (btnPowers[btnTypes[i-1]] <= this.player.energy);
     },
     isStep (ref) {
       return this.$store.getters.isStep(ref, this.color);

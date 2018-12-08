@@ -4,16 +4,25 @@ const stepsMap = {
   start: "START",
   selectCell: "SELECT_CELL",
   selectOwnToken: "SELECT_OWN_TOKEN",
-  selectToken: "SELECT_TOKEN"
+  selectToken: "SELECT_TOKEN",
+  end: "END"
 }
 
 const steps = Object.values(stepsMap);
 
-const btnPowers = {
-  sticky: 40,
-  safe: 20
+const btnConsts = {
+  sticky: "Sticky",
+  newStar: "New Star",
+  get6: "Get a 6"
 }
-const btnTypes = Object.keys(btnPowers);
+
+const btnPowers = {
+  [btnConsts.sticky]: 40,
+  [btnConsts.newStar]: 20,
+  [btnConsts.get6]: 30
+}
+
+const btnTypes = Object.values(btnConsts);
 
 const boardData = [
   'RRRRRRWWWBBBBBB'.split(''),
@@ -213,4 +222,4 @@ const specialCells = {
   "10,8": 11,
 }
 
-export {colors, stepsMap, steps, btnPowers, btnTypes, boardData, colormap, boardPaths, boardPathsCommon, colorName, baseTokens, specialCells};
+export {colors, stepsMap, steps, btnConsts, btnPowers, btnTypes, boardData, colormap, boardPaths, boardPathsCommon, colorName, baseTokens, specialCells};

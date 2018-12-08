@@ -1,7 +1,7 @@
 <template>
   <div :class="[bgClass, 'cell', { selected: isStep }]" :data-x="dx" :data-y="dy" @click="clicked">
     <div class='cell-text'>
-      {{getText}}
+      {{getText()}}
     </div>
   </div>
 </template>
@@ -31,6 +31,11 @@ export default {
       else
         return " ";
     },
+    isStep () {
+      return this.$store.getters.isStep("cell", this.getPos);
+    }
+  },
+  methods: {
     getText () {
       if (this.getColor !== " ")
         return this.getColor;
@@ -39,11 +44,6 @@ export default {
       }
       return " ";
     },
-    isStep () {
-      return this.$store.getters.isStep("cell", this.getPos);
-    }
-  },
-  methods: {
     clicked (e) {
       if (this.$store.state.disabled) {
         return;
@@ -52,7 +52,7 @@ export default {
         return;
       }
 
-      let sts = this.$store.dispatch('moveToken', {
+      let sts = this.$store.dispatch('moveCell', {
         from: this.getPos
       });
 
@@ -74,8 +74,10 @@ export default {
 @import 'bulma';
 
 .cell {
-  border: 0.5px solid $black;
+  border: 0.5px solid #77d;
   position: relative;
+  margin: 1px;
+  border-radius: 4px;
 }
 
 .cell:after {
