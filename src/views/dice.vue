@@ -1,5 +1,5 @@
 <template>
-  <div :class="['dice', 'value-' + rollValue]" @click="roll"></div>
+  <div :class="['dice', 'value-' + rollValue]" @click="roll" ref="die"></div>
 </template>
 
 <script>
@@ -30,7 +30,7 @@ export default {
   },
   update () {
     if (this.isStep) {
-      this.$el.focus();
+      this.$refs.die.focus();
     }
   }
 }

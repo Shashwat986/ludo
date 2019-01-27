@@ -10,33 +10,11 @@ import Player from './player';
 import Token from './token';
 
 
-let tokens = {
-  "R,3,2": 1,
-  "R,5,3": 1,
-  "R,4,5": 1,
-  "R,2,4": 1,
-
-  "B,3,11": 1,
-  "B,2,13": 1,
-  "B,5,12": 1,
-  "B,4,14": 1,
-
-  "G,11,13": 1,
-  "G,13,14": 1,
-  "G,12,11": 1,
-  "G,14,12": 1,
-
-  "Y,13,5": 1,
-  "Y,14,3": 1,
-  "Y,11,4": 1,
-  "Y,12,2": 1
-}
-
 const store = new Vuex.Store({
   state: {
     sync: 0,
-    tokens: {...tokens},
     colors: colors,
+    round: 1,
     move: colors[0],
     steps: steps,
     step: steps[0],
@@ -83,13 +61,18 @@ const store = new Vuex.Store({
         return colors;
       }
     },
-    canTokenMove (state) {
-      return function (from) {
+    canTokenMove (state, getters) {
+      return function (from, color = null) {
+        if (color == null) {
+          color = state.move;
+        }
+
         let rms = {
           rejectStatus: false
         };
 
         let cell = Cell.get(from);
+        let token = getters.getToken(color, from);
 
         if (state.dieRoll === 6) {  //FIXME
           rms.repeatMove = true;
@@ -116,7 +99,7 @@ const store = new Vuex.Store({
           rms.killTokens = false;
         }
 
-        if (cell.isSticky) {
+        if (token.isSticky(state.round)) {
           rms.dieRoll = Math.ceil(state.dieRoll / 2);
         }
 
@@ -239,6 +222,8 @@ const store = new Vuex.Store({
       } else {
         state.move = state.colors[(idx + 1) % len];
       }
+
+      state.round += 1;
     },
     nextStep (state, ref) {
       if (typeof ref !== "undefined" && state.steps.indexOf(ref) !== -1) {
@@ -334,7 +319,7 @@ const store = new Vuex.Store({
           dispatch('completeStep', stepsMap.selectCell);
           break;
         case btnConsts.sticky:
-          dispatch('completeStep', stepsMap.selectCell);
+          dispatch('completeStep', stepsMap.selectToken);
           break;
         case btnConsts.get6:
           commit('roll', 6);
@@ -342,7 +327,7 @@ const store = new Vuex.Store({
       }
 
     },
-    moveCell ({commit, state, dispatch}, params) {
+    moveCell ({commit, state, dispatch, getters}, params) {
       if (state.step === stepsMap.selectOwnToken) {
         return dispatch('moveToken', params);
       }
@@ -356,8 +341,21 @@ const store = new Vuex.Store({
             cell.isStarPoint = true;
             commit('unsetActiveBtn');
             break;
+        }
+
+        dispatch('completeStep', stepsMap.end);
+      }
+
+      if (state.step === stepsMap.selectToken) {
+        let pos = params.from;
+
+        let cell = Cell.get(pos);
+        switch (state.activeBtn) {
           case btnConsts.sticky:
-            cell.isSticky = true;
+            getters.getAllTokens(pos).forEach(function (token) {
+              token.sticky = true;
+              token.stickyAt = state.round;
+            });
             commit('unsetActiveBtn');
             break;
         }

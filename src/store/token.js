@@ -1,4 +1,5 @@
 import Cell from './cell';
+import {colors} from './constants';
 
 class Token {
   constructor (color, cell, player) {
@@ -23,6 +24,20 @@ class Token {
 
   getNextStep (steps) {
     return this.cell.getNextStep(this.color, steps);
+  }
+
+  isSticky (round) {
+    if (!this.sticky) {
+      return false;
+    }
+    if (this.sticky && (this.stickyAt + colors.length) > round) {
+      return true;
+    }
+
+    this.sticky = false;
+    this.stickyAt = null;
+
+    return false;
   }
 }
 
