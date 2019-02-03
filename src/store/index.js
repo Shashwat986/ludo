@@ -12,15 +12,12 @@ import Token from './token';
 
 const store = new Vuex.Store({
   state: {
-    sync: 0,
     colors: colors,
     round: 1,
     move: colors[0],
     steps: steps,
     step: steps[0],
     activeBtn: null,
-    colormap: colormap,
-    colorName: colorName,
     repeatMove: false,
     dieRoll: null,
     disabled: false

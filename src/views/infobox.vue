@@ -39,7 +39,7 @@
 <script>
 import Dice from './dice.vue';
 import Player from '../store/player';
-import {btnPowers, btnTypes} from '../store/constants';
+import {btnPowers, btnTypes, colormap, colorName} from '../store/constants';
 
 export default {
   props: ['color'],
@@ -62,10 +62,10 @@ export default {
       return btnTypes.length;
     },
     bColor () {
-      return this.$store.state.colormap[this.color];
+      return colormap[this.color];
     },
     colorName () {
-      return this.$store.state.colorName[this.color];
+      return colorName[this.color];
     }
   },
   methods: {

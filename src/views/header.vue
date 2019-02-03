@@ -11,16 +11,17 @@
 </template>
 
 <script>
+import {colormap, colorName} from '../store/constants';
 export default {
   data () {
     return {};
   },
   computed: {
     color () {
-      return this.$store.state.colormap[this.$store.state.move];
+      return colormap[this.$store.state.move];
     },
     colorName () {
-      return this.$store.state.colorName[this.$store.state.move];
+      return colorName[this.$store.state.move];
     },
     msg () {
       switch (this.$store.state.step) {
