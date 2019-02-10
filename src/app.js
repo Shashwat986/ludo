@@ -1,4 +1,5 @@
 require('./css/main.scss');
+import './store/save_object';
 
 import Vue from 'vue';
 import store from './store';
@@ -9,9 +10,11 @@ import Header from './views/header.vue';
 
 import Cell from './store/cell';
 import Player from './store/player';
-import * as cc from './store/constants';
+import * as constants from './store/constants';
+import * as save from './store/save';
 
-window.cc = cc;
+window.cc = constants;
+window.save = save;
 
 window.Cell = Cell;
 window.Player = Player;

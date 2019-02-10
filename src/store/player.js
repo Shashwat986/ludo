@@ -2,14 +2,14 @@ import {colors, baseTokens} from './constants';
 import Cell from './cell';
 import Token from './token';
 
-let colorPlayer = {}
+import saveObject from './save_object';
 
 class Player {
   constructor (color) {
     this.color = color;
     this.tokens = [];
     this.energy = 0;
-    colorPlayer[color] = this;
+    saveObject.colorPlayer[color] = this;
 
     baseTokens[color].forEach((pos) => {
       let cell = Cell.get(pos)
@@ -20,7 +20,7 @@ class Player {
   }
 
   static get (color) {
-    return colorPlayer[color];
+    return saveObject.colorPlayer[color];
   }
 }
 
@@ -29,5 +29,4 @@ colors.forEach(function (color) {
 });
 
 
-export {colorPlayer, Player};
 export default Player;

@@ -48,15 +48,17 @@ export default {
   },
   data () {
     return {
-      player: Player.get(this.color)
     };
   },
   computed: {
+    player() {
+      return Player.get(this.color);
+    },
     btnTypes() {
       return btnTypes;
     },
     btnPowers() {
-      return btnPowers
+      return btnPowers;
     },
     numTypes () {
       return btnTypes.length;

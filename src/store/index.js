@@ -9,6 +9,8 @@ import Cell from './cell';
 import Player from './player';
 import Token from './token';
 
+import {save, restore} from './save';
+
 
 const store = new Vuex.Store({
   state: {
@@ -440,6 +442,14 @@ const store = new Vuex.Store({
 
       f();
       return true;
+    },
+    saveState ({state}) {
+      window.saveFile = save(state);
+    },
+    restoreState () {
+
+      let newState = restore(window.saveFile);
+      this.replaceState(newState);
     }
   }
 });

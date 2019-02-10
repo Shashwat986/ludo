@@ -7,6 +7,8 @@ class Token {
     this.player = player;
     this.cell = cell;
     this.home = cell.pos;
+    this.sticky = false;
+    this.stickyAt = null;
 
     cell.tokens.push(this);
   }

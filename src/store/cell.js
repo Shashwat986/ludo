@@ -1,6 +1,6 @@
 import {boardData, colormap, boardPaths, boardPathsCommon, specialCells} from './constants';
 
-let cellMap = [];
+import saveObject from './save_object';
 
 class Cell {
   constructor (x, y) {
@@ -20,7 +20,7 @@ class Cell {
       y = parseInt(words[1]);
     }
 
-    return cellMap[x-1][y-1];
+    return saveObject.cellMap[x-1][y-1];
   }
 
   mapSpecialCell (value) {
@@ -69,16 +69,15 @@ class Cell {
 }
 
 for (let i = 0; i < 15; i++) {
-  cellMap.push([]);
+  saveObject.cellMap.push([]);
   for (let j = 0; j < 15; j++) {
     let cell = new Cell(i+1, j+1);
     if (specialCells[cell.pos]) {
       cell.mapSpecialCell(specialCells[cell.pos]);
     }
 
-    cellMap[i].push(cell);
+    saveObject.cellMap[i].push(cell);
   }
 }
 
-export {cellMap, Cell};
 export default Cell;

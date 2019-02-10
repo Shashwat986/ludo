@@ -16,6 +16,7 @@
     "copy-webpack-plugin": "^4.0.1",
     "css-loader": "^0.26.2",
     "file-loader": "^0.11.2",
+    "flatted": "^2.0.0",
     "github-api": "^3.0.0",
     "node-sass": "^4.10.0",
     "sass-loader": "^7.1.0",
